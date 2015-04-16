@@ -12,3 +12,11 @@ http://en.wikipedia.org/wiki/Swiss-system_tournament
 
 The python application uses a PostgreSQL database to store
 and maintain the data for the tournament.
+
+-----------------------------------------------------------
+IMPORTANT FILES
+
+- tournament.py
+- tournament_test.py
+- tournament.sql
+- Database names 'tournament'
