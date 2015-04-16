@@ -10,17 +10,31 @@ def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
     return psycopg2.connect("dbname=tournament")
 
-
 def deleteMatches():
     """Remove all the match records from the database."""
+	conn = connect()
+	c = conn.cursor()
+	c.execute("DELETE FROM match;")
+	conn.commit()
+	conn.close()
 
 
 def deletePlayers():
     """Remove all the player records from the database."""
-
+	conn = connect()
+	c = conn.cursor()
+	c.execute("DELETE FROM registeredplayer;")
+	conn.commit()
+	conn.close()
 
 def countPlayers():
     """Returns the number of players currently registered."""
+	conn = connect()
+	c = conn.cursor()
+	c.execute("SELECT COUNT(playerid) from registeredplayer;")
+	player_count = c.fetchone()
+	return player_count
+	
 
 
 def registerPlayer(name):
@@ -32,6 +46,12 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
+	
+	conn = connect()
+	c = conn.cursor()
+	c.execute("INSERT INTO registeredplayer (fullName) VALUES (%s);", (name,))
+	conn.commit()
+	conn.close()
 
 
 def playerStandings():
@@ -47,6 +67,32 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
+	
+	conn = connect()
+	c = conn.cursor()
+	
+	# The Purpose of the below code is to do the following
+	#  -At the lowest level subquery, we are calculating the number of wins by player
+	#  -We are then matching that with the total number of matches played by player
+	#  -Finally, we are joining that to the reg. player table to join the name
+	c.execute("""
+	SELECT registeredplayer.playerid as 'id'
+	, registeredplayer.fullname as 'name'
+	, match_info.wins as 'wins'
+	, match_info.match as 'matches'
+	from registeredplayer
+	INNER JOIN	
+		(SELECT playerid
+		, count(id) as 'matches'
+		, count(wins.wins) as 'wins)
+		FROM match
+		LEFT OUTER JOIN ( SELECT playerid, count(id) as 'wins' from match where result = 'W' group by playerid) wins
+			on match.playerid = wins.playerid
+		group by playerid) match_info on registeredplayer.playerid = match_info.playerid
+		
+"""
+	current_standing = c.fetchall()
+	return current_standing
 
 
 def reportMatch(winner, loser):
@@ -56,7 +102,15 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
- 
+	conn = connect()
+	c = conn.cursor()
+	c.execute("""
+	INSERT INTO match (playerId, result) VALUES
+		(%s, 'W'),
+		(%s, 'L');
+	""", (winner, loser,))
+	conn.commit()
+	conn.close()
  
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.

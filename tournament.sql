@@ -13,9 +13,8 @@ CREATE TABLE registeredPlayer (
  fullName text);
  
 CREATE TABLE match (
-matchId serial Primary Key,
+id serial Primary Key,
 playerId serial references registeredPlayer(playerId),
-round int,
 result text);
 
 
