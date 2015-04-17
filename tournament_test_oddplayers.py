@@ -5,17 +5,23 @@
 from tournament import *
 
 def testDeleteMatches():
+    deleteByes()
     deleteMatches()
     print "1. Old matches can be deleted."
 
 
 def testDelete():
+    deleteByes()
     deleteMatches()
     deletePlayers()
     print "2. Player records can be deleted."
-
+	
+def testDeleteBye():
+	deleteByes()
+	print "2a. Byes can be deleted."
 
 def testCount():
+    deleteByes()
     deleteMatches()
     deletePlayers()
     c = countPlayers()
@@ -28,6 +34,7 @@ def testCount():
 
 
 def testRegister():
+    deleteByes()
     deleteMatches()
     deletePlayers()
     registerPlayer("Chandra Nalaar")
@@ -39,6 +46,7 @@ def testRegister():
 
 
 def testRegisterCountDelete():
+    deleteByes()
     deleteMatches()
     deletePlayers()
     registerPlayer("Markov Chaney")
@@ -57,6 +65,7 @@ def testRegisterCountDelete():
 
 
 def testStandingsBeforeMatches():
+    deleteByes()
     deleteMatches()
     deletePlayers()
     registerPlayer("Melpomene Murray")
@@ -80,6 +89,7 @@ def testStandingsBeforeMatches():
 
 
 def testReportMatches():
+    deleteByes() 
     deleteMatches()
     deletePlayers()
     registerPlayer("Bruno Walton")
@@ -101,28 +111,44 @@ def testReportMatches():
     print "7. After a match, players have updated standings."
 
 
-def testPairings():
+def testByePairing():
+    deleteByes()
     deleteMatches()
     deletePlayers()
     registerPlayer("Twilight Sparkle")
     registerPlayer("Fluttershy")
     registerPlayer("Applejack")
     registerPlayer("Pinkie Pie")
+    registerPlayer("Magic Johnson")
     standings = playerStandings()
-    [id1, id2, id3, id4] = [row[0] for row in standings]
+    [id1, id2, id3, id4, id5] = [row[0] for row in standings]
     reportMatch(id1, id2)
     reportMatch(id3, id4)
+    reportMatch(id5)
+    addByePlayer(id5)
     pairings = swissPairings()
-    if len(pairings) != 2:
+    if len(pairings) != 3:
         raise ValueError(
-            "For four players, swissPairings should return two pairs.")
-    [(pid1, pname1, pid2, pname2), (pid3, pname3, pid4, pname4)] = pairings
-    correct_pairs = set([frozenset([id1, id3]), frozenset([id2, id4])])
-    actual_pairs = set([frozenset([pid1, pid2]), frozenset([pid3, pid4])])
-    if correct_pairs != actual_pairs:
+            "For five players, swissPairings should return three pairs.")
+	if len(pairings[0]) != 2:
+	    raise ValueError(
+		    "The first round must be the bye round, consisting of one player")
+        print "First Pairing: " + string(pairings[0])
+    print pairings
+    if pairings[0][0] == id5:
         raise ValueError(
-            "After one match, players with one win should be paired.")
-    print "8. After one match, players with one win are paired."
+		    "The bye player must not be the same as a previous round")
+    if pairings[0][0] in [id1, id3] and (pairings[1][0] != id5 and pairings[1][2] != id5):
+        raise ValueError(
+	        "Bye Player not properly placed.")
+    elif pairings[0][0] in [id2, id4] and (pairings[2][0] != id5 and pairings[2][2] != id5):
+        raise ValueError(
+            "Bye Player not properly placed.")
+    if bye_length != 2:
+        raise ValueError(
+            "After two rounds, there must be two players on the bye list")
+    print "8. After one match, bye match is successfully implemented."
+	
 
 
 if __name__ == '__main__':
@@ -133,7 +159,7 @@ if __name__ == '__main__':
     testRegisterCountDelete()
     testStandingsBeforeMatches()
     testReportMatches()
-    testPairings()
+    testByePairing()
     print "Success!  All tests pass!"
 
 

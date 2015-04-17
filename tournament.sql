@@ -40,7 +40,8 @@ CREATE VIEW playerStanding AS
 		group by match.playerid) as match_info 
 	on registeredplayer.playerid = match_info.playerid
 	ORDER BY CASE WHEN match_info.wins IS NULL THEN 0 ELSE match_info.wins END DESC
-	, CASE WHEN match_info.matches IS NULL THEN 0 ELSE match_info.matches END;
+	, CASE WHEN match_info.matches IS NULL THEN 0 ELSE match_info.matches END
+	, registeredplayer.playerid;
 	
 CREATE TABLE playerBye (
 id serial Primary Key,

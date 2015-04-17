@@ -12,16 +12,20 @@ def connect():
 	return psycopg2.connect("dbname=tournament")
 
 def deleteMatches():
-	"""Remove all the match records from the database.
-	In addition to deleting matches, we are also going to
-	be deleting from the 'playerBye' table, as these are
-	the two tables that are most closely linked."""
+	"""Remove all the match records from the database."""
 	conn = connect()
 	c = conn.cursor()
-	c.execute("DELETE FROM match; DELETE FROM playerbye;")
+	c.execute("DELETE FROM match;")
 	conn.commit()
 	conn.close()
-
+	
+def deleteByes():
+	"""Remove all the byes stored in the Database."""
+	conn = connect()
+	c = conn.cursor()
+	c.execute("DELETE FROM playerbye;")
+	conn.commit()
+	conn.close()	
 
 def deletePlayers():
 	"""Remove all the player records from the database."""
@@ -54,9 +58,17 @@ def addByePlayer(playerId):
 	"""Add a player to the 'bye' list."""
 	conn = connect()
 	c = conn.cursor()
-	c.execute("INSERT INTO playerbye VALUES (%s);", (playerId,))
+	c.execute("INSERT INTO playerbye (playerid) VALUES (%s);", (playerId,))
 	conn.commit()
 	conn.close()
+	
+def countByePlayer():
+	"""Returns players on 'bye' list."""
+	conn = connect()
+	c = conn.cursor()
+	c.execute("SELECT * FROM playerbye;")
+	result = c.fetchall()
+	return result
 
 def registerPlayer(name):
 	"""Adds a player to the tournament database.
@@ -91,7 +103,7 @@ def playerStandings():
 	
 	conn = connect()
 	c = conn.cursor()
-	c.execute("SELECT * from playerstanding;")
+	c.execute("SELECT id, name, wins, matches from playerstanding;")
 	current_standing = c.fetchall()
 	return current_standing
 
@@ -108,7 +120,7 @@ def reportMatch(winner, loser = None):
 	if loser == None:
 		c.execute("""
 		INSERT INTO match (playerId, result) VALUES
-			(%s, 'W');""", (winner))		
+			(%s, 'W');""", (winner,))		
 	else:
 		c.execute("""
 		INSERT INTO match (playerId, result) VALUES
