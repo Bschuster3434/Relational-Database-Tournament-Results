@@ -16,7 +16,13 @@ and maintain the data for the tournament.
 -----------------------------------------------------------
 IMPORTANT FILES
 
+STANDARD FROM PROJECT
 - tournament.py
 - tournament_test.py
 - tournament.sql
 - Database names 'tournament'
+
+ADDITIONAL
+- tournament_test_oddplayers.py (For testing use cases where byes are necessary)
+
+
