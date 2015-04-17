@@ -70,31 +70,7 @@ def playerStandings():
 	
 	conn = connect()
 	c = conn.cursor()
-	
-	# The Purpose of the below code is to do the following
-	#  -At the lowest level subquery, we are calculating the number of wins by player
-	#  -We are then matching that with the total number of matches played by player
-	#  -Finally, we are joining that to the reg. player table to join the name
-	# Wrapped match_info in case whens to return 0 when the value is null
-	c.execute("""
-	SELECT registeredplayer.playerid as id
-	, registeredplayer.fullname as name
-	, CASE WHEN match_info.wins IS NULL THEN 0 ELSE match_info.wins END as wins
-	, CASE WHEN match_info.matches IS NULL THEN 0 ELSE match_info.matches END as matches
-	from registeredplayer
-	LEFT OUTER JOIN	
-		(SELECT match.playerid
-		, count(match.id) as matches
-		, count(wins.wins) as wins
-		FROM match
-		LEFT OUTER JOIN 
-			(SELECT playerid, count(id) as wins from match where result = 'W' group by playerid) as wins
-		on match.playerid = wins.playerid
-		group by match.playerid) as match_info 
-	on registeredplayer.playerid = match_info.playerid
-	ORDER BY CASE WHEN match_info.wins IS NULL THEN 0 ELSE match_info.wins END DESC
-	, CASE WHEN match_info.matches IS NULL THEN 0 ELSE match_info.matches END
-""")
+	c.execute("SELECT * from playerstanding;")
 	current_standing = c.fetchall()
 	return current_standing
 
