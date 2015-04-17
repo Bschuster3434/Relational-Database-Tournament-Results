@@ -4,6 +4,7 @@
 #
 
 import psycopg2
+import random
 
 
 def connect():
@@ -11,10 +12,13 @@ def connect():
 	return psycopg2.connect("dbname=tournament")
 
 def deleteMatches():
-	"""Remove all the match records from the database."""
+	"""Remove all the match records from the database.
+	In addition to deleting matches, we are also going to
+	be deleting from the 'playerBye' table, as these are
+	the two tables that are most closely linked."""
 	conn = connect()
 	c = conn.cursor()
-	c.execute("DELETE FROM match;")
+	c.execute("DELETE FROM match; DELETE FROM playerbye;")
 	conn.commit()
 	conn.close()
 
@@ -35,7 +39,24 @@ def countPlayers():
 	player_count = c.fetchone()[0]
 	return player_count
 	
-
+def retrieveByes():
+	"""Retrieves the list of players who have received byes."""
+	conn = connect()
+	c = conn.cursor()
+	c.execute("SELECT playerid from playerbye;")
+	players_with_byes_lot = c.fetchall() #List of tuples... let's change this!
+	# Flattened List Below
+	players_with_byes = [item for sublist in players_with_byes_lot for item in sublist]
+	conn.close()
+	return players_with_byes
+	
+def addByePlayer(playerId):
+	"""Add a player to the 'bye' list."""
+	conn = connect()
+	c = conn.cursor()
+	c.execute("INSERT INTO playerbye VALUES (%s);", (playerId,))
+	conn.commit()
+	conn.close()
 
 def registerPlayer(name):
 	"""Adds a player to the tournament database.
@@ -112,6 +133,19 @@ def swissPairings():
 	# Based on the length of the standings, go through the list two at a time
 	# Then append to the list 'next_round'
 	next_round = []
+	
+	#Below if statement is looking for odd number of players in standings
+	if (len(current_standings) % 2) != 0:
+		players_with_byes = retrieveByes()
+		bye_player = ()
+		while bye_player == ():
+			next_choice = random.choice(current_standings) #pick a random player
+			if next_choice[0] not in players_with_byes: #If the players hasn't had a bye...
+				next_round.append(next_choice[:2]) #Add him to 'next_round'
+				current_standings.remove(next_choice) #Remove the player from current standing
+				addByePlayer(next_choice[0]) #Add the playerId (value 0) to playerBye
+				bye_player = next_choice #Change 'bye_player' flag so 'while' loop ends
+	
 	for match_create in range((len(current_standings)/2)):
 		player_seed = match_create * 2 #Seed Refers to the relative importance of the match
 		player_1 = current_standings[player_seed] #In first round, this equals the top player
