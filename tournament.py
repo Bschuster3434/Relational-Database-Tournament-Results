@@ -96,7 +96,7 @@ def playerStandings():
 	return current_standing
 
 
-def reportMatch(winner, loser):
+def reportMatch(winner, loser = None):
 	"""Records the outcome of a single match between two players.
 
     Args:
@@ -105,10 +105,15 @@ def reportMatch(winner, loser):
 	"""
 	conn = connect()
 	c = conn.cursor()
-	c.execute("""
-	INSERT INTO match (playerId, result) VALUES
-		(%s, 'W'),
-		(%s, 'L');""", (winner, loser,))
+	if loser == None:
+		c.execute("""
+		INSERT INTO match (playerId, result) VALUES
+			(%s, 'W');""", (winner))		
+	else:
+		c.execute("""
+		INSERT INTO match (playerId, result) VALUES
+			(%s, 'W'),
+			(%s, 'L');""", (winner, loser,))
 	conn.commit()
 	conn.close()
  
