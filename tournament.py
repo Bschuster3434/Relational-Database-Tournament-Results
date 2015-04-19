@@ -6,85 +6,93 @@
 import psycopg2
 import random
 
-
 def connect():
-	"""Connect to the PostgreSQL database.  Returns a database connection."""
 	return psycopg2.connect("dbname=tournament")
 
+def connect_execute(sql):
+    """Connect to the PostgreSQL database and runs the SQL statement.
+       Based on the sql_type, it will either run the sql and return nothing,
+       or return the result of the select statement.
+    """
+    # Grabbing the SQL Command based off of first word
+    # If function is string, just split and look at the first item
+    # If tuple, pull out the statement, then split it
+    if type(sql) is tuple:
+        sql_type = sql[0].split(" ")[0].lower()
+    elif isinstance(sql, basestring):
+        sql_type = sql.split(" ")[0].lower()
+    else:
+        raise ValueError(
+            "SQL statement is not tuple or string. SQL Type is: " + str(type(sql)))
+    # If the sql_type not one of the three statements, print this error
+    if sql_type not in ['select', 'insert', 'delete']:
+        raise ValueError("sql_type must be 'select', 'insert' or 'delete'")
+    
+    conn = psycopg2.connect("dbname=tournament")
+    c = conn.cursor()
+    
+    # If the SQL type is 'insert' or 'delete', we need to check if the sql has any
+    # formatting strings, which we can figure out if the type is a tuple
+    if sql_type in ['insert', 'delete']:
+        if type(sql) is not tuple:
+            c.execute(sql) # Breaking up cursor object to be read by 'execute' statement
+        else:
+            c.execute(sql[0],sql[1])
+        conn.commit()
+        conn.close()
+    else:
+        c.execute(sql)
+        result = c.fetchall()
+        conn.close()
+        return result
+
 def deleteMatches():
-	"""Remove all the match records from the database."""
-	conn = connect()
-	c = conn.cursor()
-	c.execute("DELETE FROM match;")
-	conn.commit()
-	conn.close()
+    """Remove all the match records from the database."""
+    connect_execute("DELETE FROM match;")
 	
 def deleteByes():
-	"""Remove all the byes stored in the Database."""
-	conn = connect()
-	c = conn.cursor()
-	c.execute("DELETE FROM playerbye;")
-	conn.commit()
-	conn.close()	
+    """Remove all the byes stored in the Database."""
+    connect_execute("DELETE FROM playerbye;")	
 
 def deletePlayers():
-	"""Remove all the player records from the database."""
-	conn = connect()
-	c = conn.cursor()
-	c.execute("DELETE FROM registeredplayer;")
-	conn.commit()
-	conn.close()
+    """Remove all the player records from the database."""
+    connect_execute("DELETE FROM registeredplayer;")
 
 def countPlayers():
-	"""Returns the number of players currently registered."""
-	conn = connect()
-	c = conn.cursor()
-	c.execute("SELECT COUNT(playerid) from registeredplayer;")
-	player_count = c.fetchone()[0]
-	return player_count
+    """Returns the number of players currently registered."""
+    player_count = connect_execute("SELECT COUNT(playerid) from registeredplayer;")
+    player_count = player_count[0][0]
+    return player_count
 	
 def retrieveByes():
-	"""Retrieves the list of players who have received byes."""
-	conn = connect()
-	c = conn.cursor()
-	c.execute("SELECT playerid from playerbye;")
-	players_with_byes_lot = c.fetchall() #List of tuples... let's change this!
-	# Flattened List Below
-	players_with_byes = [item for sublist in players_with_byes_lot for item in sublist]
-	conn.close()
-	return players_with_byes
+    """Retrieves the list of players who have received byes."""
+    players_with_byes_lot = connect_execute("SELECT playerid from playerbye;") 
+    # players_with_byes_lot is a List of tuples... let's change this!
+    # Flattened List Below
+    players_with_byes = [item for sublist in players_with_byes_lot for item in sublist]
+    return players_with_byes
 	
 def addByePlayer(playerId):
-	"""Add a player to the 'bye' list."""
-	conn = connect()
-	c = conn.cursor()
-	c.execute("INSERT INTO playerbye (playerid) VALUES (%s);", (playerId,))
-	conn.commit()
-	conn.close()
+    """Add a player to the 'bye' list."""
+    cursor_object = "INSERT INTO playerbye (playerid) VALUES (%s);",(playerId,)
+    connect_execute(cursor_object)
 	
 def countByePlayer():
-	"""Returns players on 'bye' list."""
-	conn = connect()
-	c = conn.cursor()
-	c.execute("SELECT * FROM playerbye;")
-	result = c.fetchall()
-	return result
+    """Returns players on 'bye' list."""
+    result = connect_execute("SELECT * FROM playerbye;")
+    return result
 
 def registerPlayer(name):
-	"""Adds a player to the tournament database.
+    """Adds a player to the tournament database.
   
     The database assigns a unique serial id number for the player.  (This
     should be handled by your SQL database schema, not in your Python code.)
   
     Args:
       name: the player's full name (need not be unique).
-	"""
-	
-	conn = connect()
-	c = conn.cursor()
-	c.execute("INSERT INTO registeredplayer (fullName) VALUES (%s);", (name,))
-	conn.commit()
-	conn.close()
+    """
+    cursor_object = "INSERT INTO registeredplayer (fullName) VALUES (%s)",(name,)
+    connect_execute(cursor_object)
 
 
 def playerStandings():
@@ -101,33 +109,22 @@ def playerStandings():
         matches: the number of matches the player has played
 	"""
 	
-	conn = connect()
-	c = conn.cursor()
-	c.execute("SELECT id, name, wins, matches from playerstanding;")
-	current_standing = c.fetchall()
+	current_standing = connect_execute("SELECT id, name, wins, matches from playerstanding;")
 	return current_standing
 
 
 def reportMatch(winner, loser = None):
-	"""Records the outcome of a single match between two players.
+    """Records the outcome of a single match between two players.
 
     Args:
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
 	"""
-	conn = connect()
-	c = conn.cursor()
-	if loser == None:
-		c.execute("""
-		INSERT INTO match (playerId, result) VALUES
-			(%s, 'W');""", (winner,))		
-	else:
-		c.execute("""
-		INSERT INTO match (playerId, result) VALUES
-			(%s, 'W'),
-			(%s, 'L');""", (winner, loser,))
-	conn.commit()
-	conn.close()
+    if loser == None:
+        statement = "INSERT INTO match (playerId, result) VALUES (%s, 'W');",(winner,)		
+    else:
+        statement = "INSERT INTO match (playerId, result) VALUES(%s, 'W'),(%s, 'L');",(winner, loser,)
+    connect_execute(statement)
  
 def swissPairings():
 	"""Returns a list of pairs of players for the next round of a match.

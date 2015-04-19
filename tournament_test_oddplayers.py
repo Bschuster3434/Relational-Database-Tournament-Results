@@ -19,10 +19,6 @@ def testDelete():
     deleteMatches()
     deletePlayers()
     print "2. Player records can be deleted."
-	
-def testDeleteBye():
-	deleteByes()
-	print "2a. Byes can be deleted."
 
 def testCount():
     deleteByes()

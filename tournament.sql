@@ -10,12 +10,12 @@
 
 CREATE TABLE registeredPlayer (
  playerId serial Primary Key,
- fullName text);
+ fullName varchar(75));
  
 CREATE TABLE match (
 id serial Primary Key,
 playerId serial references registeredPlayer(playerId),
-result text);
+result varchar(75));
 
 -- The Purpose of the below code is to do the following
 --  -At the lowest level subquery, we are calculating the number of wins by player
