@@ -149,7 +149,7 @@ def reportMatch(winner, loser = None):
     connect_execute(statement)
  
 def swissPairings():
-	"""Returns a list of pairs of players for the next round of a match.
+    """Returns a list of pairs of players for the next round of a match.
   
     Assuming that there are an even number of players registered, each player
     appears exactly once in the pairings.  Each player is paired with another
@@ -164,34 +164,42 @@ def swissPairings():
         name2: the second player's name
 	"""
 	# Go get the current standings
-	current_standings = playerStandings()
+    current_standings = playerStandings()
 	
 	# Based on the length of the standings, go through the list two at a time
 	# Then append to the list 'next_round'
-	next_round = []
+    next_round = []
 	
-	#Below if statement is looking for odd number of players in standings
-	if (len(current_standings) % 2) != 0:
-		players_with_byes = retrieveByes()
-		bye_player = ()
-		while bye_player == ():
-			next_choice = random.choice(current_standings) #pick a random player
-			if next_choice[0] not in players_with_byes: #If the players hasn't had a bye...
-				next_round.append(next_choice[:2]) #Add him to 'next_round'
-				current_standings.remove(next_choice) #Remove the player from current standing
-				addByePlayer(next_choice[0]) #Add the playerId (value 0) to playerBye
-				bye_player = next_choice #Change 'bye_player' flag so 'while' loop ends
-
-    past_matches = retrievePastMatches()
+    #Below if statement is looking for odd number of players in standings
+    if (len(current_standings) % 2) != 0:
+        players_with_byes = retrieveByes()
+        bye_player = ()
+        while bye_player == ():
+            next_choice = random.choice(current_standings) #pick a random player
+            if next_choice[0] not in players_with_byes: #If the players hasn't had a bye...
+                next_round.append(next_choice[:2]) #Add him to 'next_round'
+                current_standings.remove(next_choice) #Remove the player from current standing
+                addByePlayer(next_choice[0]) #Add the playerId (value 0) to playerBye
+                bye_player = next_choice #Change 'bye_player' flag so 'while' loop ends
+    past_matches = retrievePastMatches() # List of all past matches
 	
-	for match_create in range((len(current_standings)/2)):
-		player_seed = match_create * 2 #Seed Refers to the relative importance of the match
-		player_1 = current_standings[player_seed] #In first round, this equals the top player
-		player_2 = current_standings[player_seed+1] #In the first round, this equals the 2nd top player
-		next_match = player_1[:2] + player_2[:2] #returns the id and name of the two players
-		next_round.append(next_match)
-	
-	return next_round
+    number_of_rounds_to_match = len(current_standings)/2
+    for match_create in range(number_of_rounds_to_match):
+        player_1 = current_standings[0] #In first round, this equals the top player
+        current_standings.remove(player_1)
+        for next_player in current_standings:
+            if (player_1[0], next_player[0]) not in past_matches:
+                player_2 = next_player #In the first round, this equals the 2nd top player
+                current_standings.remove(player_2) #Remove the 2nd player from current standings
+                next_match = player_1[:2] + player_2[:2] #returns the id and name of the two players
+                next_round.append(next_match) #Mark next round in records
+                addMatchPlayers(player_1[0], player_2[0]) #Inserts Record that this round happened
+                break #Break out of this loop once a match has been found
+    if len(current_standings) != 0:
+        raise ValueError(
+            "Not All Rounds Placed. Please Evaluate")
+   
+    return next_round
 		
 		
 	

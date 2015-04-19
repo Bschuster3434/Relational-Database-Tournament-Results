@@ -7,6 +7,7 @@ from tournament import *
 def clearAllTables():
     deleteByes()
     deleteMatches()
+    deletePastMatches()
     deletePlayers()
 
 def testDeleteMatches():
