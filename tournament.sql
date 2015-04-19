@@ -47,4 +47,9 @@ CREATE TABLE playerBye (
 id serial Primary Key,
 playerId serial references registeredPlayer(playerId));
 
+CREATE TABLE pastMatch (
+id serial Primary Key,
+playerIdOne serial references registeredPlayer(playerId),
+playerIdTwo serial references registeredPlayer(playerId));
+
 

@@ -52,7 +52,11 @@ def deleteMatches():
 	
 def deleteByes():
     """Remove all the byes stored in the Database."""
-    connect_execute("DELETE FROM playerbye;")	
+    connect_execute("DELETE FROM playerbye;")
+
+def deletePastMatches():
+    """Delete Past Matches from the schema."""
+    connect_execute("DELETE FROM pastmatch;")
 
 def deletePlayers():
     """Remove all the player records from the database."""
@@ -81,6 +85,24 @@ def countByePlayer():
     """Returns players on 'bye' list."""
     result = connect_execute("SELECT * FROM playerbye;")
     return result
+
+def addMatchPlayers(playerOne, playerTwo):
+    """Add a new match to pastmatch"""
+    cursor_object = "INSERT INTO pastmatch (playeridone, playeridtwo) VALUES (%s,%s)", (playerOne, playerTwo,)
+    connect_execute(cursor_object)
+
+def retrievePastMatches():
+    """Retrieves the list of past player matches including the inverse
+       of every match
+    """
+    result_list = connect_execute("SELECT playeridone, playeridtwo from pastmatch")
+    result_list_with_inverse = []
+    for match in result_list:
+        result_list_with_inverse.append(match)
+        match_inverse = (match[1], match[0])
+        result_list_with_inverse.append(match_inverse)
+    return result_list_with_inverse
+       
 
 def registerPlayer(name):
     """Adds a player to the tournament database.
@@ -159,6 +181,8 @@ def swissPairings():
 				current_standings.remove(next_choice) #Remove the player from current standing
 				addByePlayer(next_choice[0]) #Add the playerId (value 0) to playerBye
 				bye_player = next_choice #Change 'bye_player' flag so 'while' loop ends
+
+    past_matches = retrievePastMatches()
 	
 	for match_create in range((len(current_standings)/2)):
 		player_seed = match_create * 2 #Seed Refers to the relative importance of the match

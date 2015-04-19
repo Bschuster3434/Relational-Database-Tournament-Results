@@ -8,11 +8,11 @@ def clearAllTables():
     deleteByes()
     deleteMatches()
     deletePlayers()
+    deletePastMatches()
 
 def testDeleteMatches():
     deleteMatches()
     print "1. Old matches can be deleted."
-
 
 def testDelete():
     deleteMatches()
