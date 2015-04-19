@@ -35,11 +35,23 @@ TOOLS TO RUN CODE
 - Vagrant
   - Please see instructions here for full install:
     https://www.udacity.com/wiki/ud197/install-vagrant
-	(NOTE: If you follow the Vagarant Install, all tools will
+	(NOTE: If you follow the Vagrant Install, all tools will
 	 be available on the VM)
 	 
 -----------------------------------------------------------
+INSTRUCTIONS TO RUN TOURNAMENT TESTS
 
-
+1) After going through the Vagrant tutorial, change your directory
+to 'tournament'
+2) Clone this git repository into the directory using:
+	'git clone https://github.com/Bschuster3434/Relational-Database-Tournament-Results.git'
+3) Once completed, type 'vagrant ssh' and use those credentials
+   to SSH into your box
+   - If you're on Windows 7, 'Putty' would work as your SSH client
+4) Once in the virtual machine, change directories to :
+   '/vagrant/tournament/tournamnet_results'
+5) Run the two test scripts using the following commands:
+   - python tournament_test.py
+   - python tournament_test_oddplayers.py
 
 

@@ -4,11 +4,15 @@
 
 from tournament import *
 
+def clearAllTables():
+    deleteByes()
+    deleteMatches()
+    deletePlayers()
+
 def testDeleteMatches():
     deleteByes()
     deleteMatches()
     print "1. Old matches can be deleted."
-
 
 def testDelete():
     deleteByes()
@@ -134,7 +138,6 @@ def testByePairing():
 	    raise ValueError(
 		    "The first round must be the bye round, consisting of one player")
         print "First Pairing: " + string(pairings[0])
-    print pairings
     if pairings[0][0] == id5:
         raise ValueError(
 		    "The bye player must not be the same as a previous round")
@@ -144,7 +147,8 @@ def testByePairing():
     elif pairings[0][0] in [id2, id4] and (pairings[2][0] != id5 and pairings[2][2] != id5):
         raise ValueError(
             "Bye Player not properly placed.")
-    if bye_length != 2:
+    bye_length = retrieveByes()
+    if len(bye_length) != 2:
         raise ValueError(
             "After two rounds, there must be two players on the bye list")
     print "8. After one match, bye match is successfully implemented."
@@ -152,6 +156,7 @@ def testByePairing():
 
 
 if __name__ == '__main__':
+    clearAllTables() #Remove any referenced tables before proceeding with tests
     testDeleteMatches()
     testDelete()
     testCount()

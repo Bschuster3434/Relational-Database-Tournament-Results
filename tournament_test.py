@@ -4,6 +4,11 @@
 
 from tournament import *
 
+def clearAllTables():
+    deleteByes()
+    deleteMatches()
+    deletePlayers()
+
 def testDeleteMatches():
     deleteMatches()
     print "1. Old matches can be deleted."
@@ -126,6 +131,7 @@ def testPairings():
 
 
 if __name__ == '__main__':
+    clearAllTables() #Remove any referenced tables before proceeding with tests
     testDeleteMatches()
     testDelete()
     testCount()
